@@ -1,0 +1,19 @@
+{
+    "required": true,
+    "minVersion": "0.8.7",
+    "package": "org.icarus.expallidus",
+    "target": "@env(DEFAULT)",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "mixins.MixinAxolotl",
+        "mixins.MixinBlocks",
+        "mixins.MixinBuddingAmethystBlock",
+        "mixins.MixinComposterBlock",
+        "mixins.MixinCryingObsidianBlock",
+        "mixins.MixinGrindstoneBlock",
+        "mixins.MixinHorse",
+        "mixins.MixinLiquidBlock",
+        "mixins.MixinWarden",
+        "mixins.MixinWebBlock"
+    ]
+}
