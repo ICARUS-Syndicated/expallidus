@@ -30,6 +30,7 @@ public class MixinHorse extends AbstractHorse {
         if (player.getItemInHand(hand).getItem() == Items.SUGAR) {
             this.addEffect(new MobEffectInstance(MobEffects.SPEED, 45, 2));
             addParticlesAroundEntity(this, ParticleTypes.WHITE_SMOKE, 10);
+            player.swing(hand);
             return InteractionResult.SUCCESS;
         }
         original.call(player, hand);

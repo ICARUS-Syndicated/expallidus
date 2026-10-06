@@ -27,7 +27,7 @@ public abstract class MixinWebBlock extends Block {
     @Override
     protected @NotNull InteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
         if (stack.is(Items.GLASS_BOTTLE)) {
-            stack.shrink(1);
+            if(!player.getAbilities().instabuild) stack.shrink(1);
             level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
             if (stack.isEmpty()) {
                 player.setItemInHand(hand, new ItemStack(Items.POTION));

@@ -23,6 +23,7 @@ import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
+// TODO fix
 @Mixin(GrindstoneBlock.class)
 public abstract class MixinGrindstoneBlock extends FaceAttachedHorizontalDirectionalBlock {
     protected MixinGrindstoneBlock(Properties properties) {
@@ -100,7 +101,7 @@ public abstract class MixinGrindstoneBlock extends FaceAttachedHorizontalDirecti
         } else {
             amount = 1;
         }
-        stack.shrink(amount);
+        if (!player.getAbilities().instabuild) stack.shrink(amount);
         if (stack.isEmpty()) {
             player.setItemInHand(hand, new ItemStack(Items.AIR));
         }

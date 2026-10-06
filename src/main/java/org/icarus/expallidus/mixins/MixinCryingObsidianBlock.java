@@ -35,9 +35,9 @@ public abstract class MixinCryingObsidianBlock extends Block {
                                                    @NotNull InteractionHand hand,
                                                    @NotNull BlockHitResult hitResult) {
         if (stack.is(Items.WATER_BUCKET)) {
-            player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, new ItemStack(Items.BUCKET)));
+            player.setItemInHand(hand, Items.BUCKET.getDefaultInstance());
             level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.GILDED_BLACKSTONE_FALL, SoundSource.BLOCKS, 1.0F, 1.0F);
-            player.drop(new ItemStack(Items.GHAST_TEAR, player.random.nextInt(4)), false);
+            player.drop(new ItemStack(Items.GHAST_TEAR, 1 + player.random.nextInt(4)), false);
             level.gameEvent(player, GameEvent.FLUID_PICKUP, pos);
             level.setBlock(pos, Blocks.OBSIDIAN.defaultBlockState(), 3);
             level.addParticle(ParticleTypes.DRIPPING_OBSIDIAN_TEAR,

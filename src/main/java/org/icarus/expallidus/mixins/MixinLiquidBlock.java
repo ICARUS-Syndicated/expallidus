@@ -23,8 +23,8 @@ public abstract class MixinLiquidBlock extends Block {
         this.fluid = fluid;
     }
 
-    @Mutable
     @Final
+    @Mutable
     @Shadow
     protected final FlowingFluid fluid;
 
@@ -32,15 +32,6 @@ public abstract class MixinLiquidBlock extends Block {
     private void fizz(LevelAccessor level, BlockPos pos) {
         throw new UnsupportedOperationException("Implemented via Mixin");
     }
-
-    @Unique
-    private final Block[] WORLD_THE_END_COBBLES = {Blocks.PURPUR_BLOCK, Blocks.END_STONE};
-
-    @Unique
-    private final Block[] SELECTABLE_COBBLES = {Blocks.ANDESITE, Blocks.DIORITE, Blocks.CALCITE, Blocks.TUFF, Blocks.GRANITE};
-
-    @Unique
-    private final Block[] SELECTABLE_BASALTS = {Blocks.ANDESITE, Blocks.DIORITE, Blocks.CALCITE, Blocks.BLACKSTONE, Blocks.GRANITE};
 
     /**
      * @author none
@@ -86,10 +77,12 @@ public abstract class MixinLiquidBlock extends Block {
 
     @Unique
     private Block expallidus$cobblestonePicker(Level level, BlockPos pos) {
+        Block[] endSelectableCobbles = {Blocks.PURPUR_BLOCK, Blocks.END_STONE};
+        Block[] selectableCobbles = {Blocks.ANDESITE, Blocks.DIORITE, Blocks.CALCITE, Blocks.TUFF, Blocks.GRANITE};
         RandomSource random = level.getRandom();
         if (level.dimension().equals(Level.END)) {
             int index = random.nextInt(2);
-            return this.WORLD_THE_END_COBBLES[index];
+            return endSelectableCobbles[index];
         }
 
         if (random.nextDouble() >= 0.5) {
@@ -99,7 +92,7 @@ public abstract class MixinLiquidBlock extends Block {
 
         if (random.nextDouble() <= 0.98) {
             int index = random.nextInt(5);
-            return this.SELECTABLE_COBBLES[index];
+            return selectableCobbles[index];
         } else {
             return Blocks.IRON_ORE;
         }
@@ -107,6 +100,7 @@ public abstract class MixinLiquidBlock extends Block {
 
     @Unique
     private Block expallidus$basaltPicker(Level level) {
+        Block[] selectableBasalts = {Blocks.ANDESITE, Blocks.DIORITE, Blocks.CALCITE, Blocks.BLACKSTONE, Blocks.GRANITE};
         RandomSource random = level.getRandom();
         if (random.nextDouble() >= 0.50) {
             return Blocks.BASALT;
@@ -114,7 +108,7 @@ public abstract class MixinLiquidBlock extends Block {
 
         if (random.nextDouble() <= 0.80) {
             int index = random.nextInt(5);
-            return this.SELECTABLE_BASALTS[index];
+            return selectableBasalts[index];
         } else {
             return Blocks.QUARTZ_BLOCK;
         }
