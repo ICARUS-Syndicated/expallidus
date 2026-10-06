@@ -33,10 +33,6 @@ public abstract class MixinLiquidBlock extends Block {
         throw new UnsupportedOperationException("Implemented via Mixin");
     }
 
-    /**
-     * @author none
-     * @reason none
-     */
     @Overwrite
     private boolean shouldSpreadLiquid(Level level, BlockPos pos, BlockState state) {
         if (this.fluid.is(FluidTags.LAVA)) {
@@ -48,26 +44,22 @@ public abstract class MixinLiquidBlock extends Block {
                     Block block = level.getFluidState(pos).isSource() ?
                         (level.getRandom().nextDouble() <= 0.125F ? Blocks.CRYING_OBSIDIAN : Blocks.OBSIDIAN) :
                         expallidus$cobblestonePicker(level, pos);
-                    // CraftBukkit start
                     if (CraftEventFactory.handleBlockFormEvent(level,
                         pos,
                         block.defaultBlockState(),
                         Block.UPDATE_ALL)) {
                         this.fizz(level, pos);
                     }
-                    // CraftBukkit end
                     return false;
                 }
 
                 if (isSoulSoil && level.getBlockState(blockPos).is(Blocks.BLUE_ICE)) {
-                    // CraftBukkit start
                     if (CraftEventFactory.handleBlockFormEvent(level,
                         pos,
                         expallidus$basaltPicker(level).defaultBlockState(),
                         Block.UPDATE_ALL)) {
                         this.fizz(level, pos);
                     }
-                    // CraftBukkit end
                     return false;
                 }
             }
@@ -86,7 +78,9 @@ public abstract class MixinLiquidBlock extends Block {
         }
 
         if (random.nextDouble() >= 0.5) {
-            if(pos.getY() <= 0 ) return Blocks.DEEPSLATE;
+            if (pos.getY() < 0) {
+                return Blocks.COBBLED_DEEPSLATE;
+            }
             return Blocks.COBBLESTONE;
         }
 

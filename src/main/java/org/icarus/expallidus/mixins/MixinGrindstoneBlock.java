@@ -6,105 +6,67 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.GrindstoneBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 
-// TODO fix
+import static org.icarus.expallidus.utils.ParticleUtils.addParticlesAroundBlock;
+
 @Mixin(GrindstoneBlock.class)
-public abstract class MixinGrindstoneBlock extends FaceAttachedHorizontalDirectionalBlock {
+public abstract class MixinGrindstoneBlock extends Block {
     protected MixinGrindstoneBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    protected @NotNull InteractionResult useItemOn(@NotNull ItemStack stack,
-                                                   @NotNull BlockState state,
-                                                   @NotNull Level level,
-                                                   @NotNull BlockPos pos,
-                                                   @NotNull Player player,
-                                                   @NotNull InteractionHand hand,
-                                                   @NotNull BlockHitResult hitResult) {
-        if (stack.is(Items.COBBLESTONE)) {
-            int amount = expallidus$getAmount(stack, player, hand);
-            Entity item = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(Items.GRAVEL, amount));
-            expallidus$postProcess(level, pos, player, item);
+    protected InteractionResult useItemOn(ItemStack stack,
+                                          BlockState state,
+                                          Level level,
+                                          BlockPos pos,
+                                          Player player,
+                                          InteractionHand hand,
+                                          BlockHitResult hitResult) {
+        boolean cobblestone = stack.is(Items.COBBLESTONE);
+        boolean gravel = stack.is(Items.GRAVEL);
+        boolean granite = stack.is(Items.GRANITE);
+        if (!cobblestone && !gravel && !granite) {
+            return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
+        }
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
-        } else if (stack.is(Items.GRAVEL)) {
-            int amount = expallidus$getAmount(stack, player, hand);
-            amount += player.getRandom().nextInt(amount);
-            Entity item = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(Items.SAND, amount));
-            expallidus$postProcess(level, pos, player, item);
-            return InteractionResult.SUCCESS;
-        } else if (stack.is(Items.GRANITE)) {
-            int amount = expallidus$getAmount(stack, player, hand);
+        }
+
+        int amount = player.isShiftKeyDown() ? stack.getCount() : 1;
+        if (cobblestone) {
+            Block.popResource(level, pos, new ItemStack(Items.GRAVEL, amount));
+        } else if (gravel) {
+            Block.popResource(level, pos, new ItemStack(Items.SAND, amount));
+            if (player.getRandom().nextFloat() < 0.5F) {
+                Block.popResource(level, pos, new ItemStack(Items.SAND, amount + player.getRandom().nextInt(amount + 1)));
+            }
+        } else {
             for (int i = 0; i < amount; i++) {
-                double chance = player.getRandom().nextDouble();
-                if (chance >= 0.75) {
-                    Item[] items = {Items.RAW_IRON, Items.RAW_COPPER};
-                    int index = player.getRandom().nextInt(255) % 2;
-                    int itemAmount = player.getRandom().nextInt(3);
-                    Entity item = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(items[index], itemAmount));
-                    level.addFreshEntity(item);
+                if (player.getRandom().nextFloat() < 0.75F) {
+                    Item nugget = player.getRandom().nextBoolean() ? Items.RAW_COPPER : Items.RAW_IRON;
+                    Block.popResource(level, pos, new ItemStack(nugget, 1 + player.getRandom().nextInt(3)));
                 } else {
-                    int itemAmount = player.getRandom().nextInt(2);
-                    Entity item = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(Items.RAW_GOLD, itemAmount));
-                    level.addFreshEntity(item);
+                    Block.popResource(level, pos, new ItemStack(Items.RAW_GOLD, 1 + player.getRandom().nextInt(2)));
                 }
             }
-            level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.GRINDSTONE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
-            level.gameEvent(player, GameEvent.BLOCK_ACTIVATE, pos);
-            level.addParticle(ParticleTypes.WHITE_ASH,
-                (double) pos.getX() + 0.5F,
-                (double) pos.getY() + 1.0F,
-                (double) pos.getZ() + 0.5F,
-                0.0F,
-                0.0F,
-                0.0F);
-            return InteractionResult.SUCCESS;
         }
-        return this.useWithoutItem(state, level, pos, player, hitResult);
-    }
 
-    @Unique
-    private static void expallidus$postProcess(@NonNull Level level, @NonNull BlockPos pos, @NonNull Player player, Entity item) {
-        level.addFreshEntity(item);
-        level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.GRINDSTONE_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
-        level.gameEvent(player, GameEvent.BLOCK_ACTIVATE, pos);
-        level.addParticle(ParticleTypes.WHITE_ASH,
-            (double) pos.getX() + 0.5F,
-            (double) pos.getY() + 1.0F,
-            (double) pos.getZ() + 0.5F,
-            0.0F,
-            0.0F,
-            0.0F);
-    }
-
-    @Unique
-    private static int expallidus$getAmount(@NonNull ItemStack stack, @NonNull Player player, @NonNull InteractionHand hand) {
-        int amount;
-        if (player.isShiftKeyDown()) {
-            amount = stack.getCount();
-        } else {
-            amount = 1;
+        level.playSound(null, pos, SoundEvents.GRINDSTONE_USE, SoundSource.BLOCKS, 0.5F, 1.0F);
+        addParticlesAroundBlock(level, pos, ParticleTypes.WHITE_ASH, 20, 0.0, 0.0);
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(amount);
         }
-        if (!player.getAbilities().instabuild) stack.shrink(amount);
-        if (stack.isEmpty()) {
-            player.setItemInHand(hand, new ItemStack(Items.AIR));
-        }
-        return amount;
+        return InteractionResult.SUCCESS;
     }
 }

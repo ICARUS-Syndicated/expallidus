@@ -31,14 +31,11 @@ public abstract class MixinBuddingAmethystBlock extends AmethystBlock {
                                                  @NotNull BlockPos pos,
                                                  @NotNull BlockState state,
                                                  Player player) {
-        // NSV Start - budding amethyst explosion
-        if (!player.getAbilities().instabuild) {
-            if (expallidus$hasSilkTouch(level, player.getMainHandItem())) {
-                Block.popResource(level, pos, new ItemStack(Blocks.BUDDING_AMETHYST));
-            } else {
-                Vec3 center = Vec3.atCenterOf(pos);
-                level.explode(player, center.x, center.y, center.z, 3.0F, Level.ExplosionInteraction.BLOCK);
-            }
+        if (expallidus$hasSilkTouch(level, player.getMainHandItem())) {
+            Block.popResource(level, pos, new ItemStack(Blocks.BUDDING_AMETHYST));
+        } else if (!player.getAbilities().instabuild) {
+            Vec3 center = Vec3.atCenterOf(pos);
+            level.explode(player, center.x, center.y, center.z, 10.0F, Level.ExplosionInteraction.BLOCK);
         }
         return super.playerWillDestroy(level, pos, state, player);
     }

@@ -2,6 +2,7 @@ package org.icarus.expallidus.utils;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -26,6 +27,24 @@ public class ParticleUtils {
 
     }
 
+    public static void addParticlesAroundEntity(Entity entity,
+                                                ParticleOptions options,
+                                                int amount,
+                                                double spread,
+                                                double extra) {
+        if (entity.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(options,
+                entity.getX(),
+                entity.getY() + (double) 1.0F,
+                entity.getZ(),
+                amount,
+                spread,
+                spread,
+                spread,
+                extra);
+        }
+    }
+
     public static void addParticlesAroundBlock(Player player,
                                                Level level,
                                                BlockPos blockPos,
@@ -41,6 +60,25 @@ public class ParticleUtils {
                 getRandomDouble(center.x, randomSource, 1.0),
                 getRandomDouble(center.y, randomSource, 1.0),
                 getRandomDouble(center.z, randomSource, 1.0), deltaX, deltaY, deltaZ);
+        }
+    }
+
+    public static void addParticlesAroundBlock(Level level,
+                                               BlockPos blockPos,
+                                               ParticleOptions options,
+                                               int amount,
+                                               double spread,
+                                               double extra) {
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(options,
+                blockPos.getX() + 0.5,
+                blockPos.getY() + 0.5,
+                blockPos.getZ() + 0.5,
+                amount,
+                spread,
+                spread,
+                spread,
+                extra);
         }
     }
 
