@@ -1,47 +1,48 @@
 package org.icarus.expallidus.mixins;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import net.minecraft.world.item.AxeItem;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BambooStalkBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BambooLeaves;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(AxeItem.class)
 public abstract class MixinAxeItem {
-    @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
-    private void expallidus$useOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        BlockState state = level.getBlockState(pos);
-        if (!state.is(Blocks.BAMBOO)
-            || state.getValue(BambooStalkBlock.AGE) != BambooStalkBlock.AGE_THICK_BAMBOO
-            || state.getValue(BambooStalkBlock.LEAVES) != BambooLeaves.NONE
-            || state.getValue(BambooStalkBlock.STAGE) != BambooStalkBlock.STAGE_GROWING) {
+
+    @Shadow
+    @Final
+    @Mutable
+    protected static Map<Block, Block> STRIPPABLES;
+
+    @Inject(method = "<clinit>", at = @At("TAIL"))
+    private static void expallidus$addBambooStrippable(CallbackInfo ci) {
+        Map<Block, Block> strippables = new HashMap<>(STRIPPABLES);
+        strippables.put(Blocks.BAMBOO, Blocks.BAMBOO_FENCE);
+        STRIPPABLES = strippables;
+    }
+
+    @Inject(method = "getStripped", at = @At("HEAD"), cancellable = true)
+    private void expallidus$stripBamboo(BlockState unstrippedState,
+                                        CallbackInfoReturnable<Optional<BlockState>> cir) {
+        if (!unstrippedState.is(Blocks.BAMBOO)) {
             return;
         }
-        Player player = context.getPlayer();
-        if (player == null) {
-            return;
-        }
-        player.swing(context.getHand());
-        level.setBlock(pos, Blocks.BAMBOO_FENCE.defaultBlockState(), Block.UPDATE_NONE);
-        level.playSound(null, pos, SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 0.5F, 1.0F);
-        if (!player.getAbilities().instabuild) {
-            context.getItemInHand().hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
-        }
-        cir.setReturnValue(InteractionResult.SUCCESS);
+        boolean strippable = unstrippedState.getValue(BambooStalkBlock.AGE) == BambooStalkBlock.AGE_THICK_BAMBOO
+            && unstrippedState.getValue(BambooStalkBlock.LEAVES) == BambooLeaves.NONE
+            && unstrippedState.getValue(BambooStalkBlock.STAGE) == BambooStalkBlock.STAGE_GROWING;
+        cir.setReturnValue(strippable ? Optional.of(Blocks.BAMBOO_FENCE.defaultBlockState()) : Optional.empty());
         cir.cancel();
     }
 }

@@ -21,10 +21,11 @@ public abstract class MixinSheep {
             target = "Lnet/minecraft/world/entity/animal/sheep/Sheep;generateDefaultDrops(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;)Ljava/util/List;"
         )
     )
-    private List<ItemStack> expallidus$extraWool(ServerLevel level,
+    private List<ItemStack> expallidus$extraWool(Sheep instance,
+                                                 ServerLevel level,
                                                  ItemStack shears,
                                                  Operation<List<ItemStack>> original) {
-        List<ItemStack> drops = original.call(level, shears);
+        List<ItemStack> drops = original.call(instance, level, shears);
         if (drops.isEmpty()) {
             return drops;
         }

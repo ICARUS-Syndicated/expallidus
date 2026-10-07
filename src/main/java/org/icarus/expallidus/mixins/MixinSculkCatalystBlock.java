@@ -18,15 +18,19 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SculkCatalystBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+
 import static org.icarus.expallidus.utils.ParticleUtils.addParticlesAroundBlock;
 
 @Mixin(SculkCatalystBlock.class)
 public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
-    private static final Item[] EXPALLIDUS$SOIL = {
-        Items.DIRT, Items.GRASS_BLOCK, Items.PODZOL, Items.COARSE_DIRT, Items.ROOTED_DIRT, Items.MYCELIUM
-    };
+    @Unique
+    private static final Item[] EXPALLIDUS$SOIL = {Items.DIRT, Items.GRASS_BLOCK, Items.PODZOL, Items.COARSE_DIRT, Items.ROOTED_DIRT, Items.MYCELIUM};
+    @Unique
     private static final Item[] EXPALLIDUS$MUD = {Items.MUD, Items.CLAY};
+    @Unique
     private static final Item[] EXPALLIDUS$SCULK = {Items.SCULK_SHRIEKER, Items.SCULK, Items.SCULK_SENSOR};
 
     protected MixinSculkCatalystBlock(Properties properties) {
@@ -34,8 +38,13 @@ public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-                                          Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected @NotNull InteractionResult useItemOn(@NotNull ItemStack stack,
+                                                   @NotNull BlockState state,
+                                                   Level level,
+                                                   BlockPos pos,
+                                                   Player player,
+                                                   @NotNull InteractionHand hand,
+                                                   @NotNull BlockHitResult hitResult) {
         ItemStack tool = player.getMainHandItem();
         if (!level.getBlockState(pos.below()).is(Blocks.LODESTONE)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
@@ -52,15 +61,14 @@ public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
         return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
     }
 
+    @Unique
     private static InteractionResult expallidus$transmuteSculk(Level level, BlockPos pos, Player player, ItemStack tool) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         int amount = player.isShiftKeyDown() ? tool.getCount() : 1;
         for (int i = 0; i < amount; i++) {
-            Item item = player.getRandom().nextFloat() < 0.5F
-                ? EXPALLIDUS$SOIL[player.getRandom().nextInt(EXPALLIDUS$SOIL.length)]
-                : EXPALLIDUS$MUD[player.getRandom().nextInt(EXPALLIDUS$MUD.length)];
+            Item item = player.getRandom().nextFloat() < 0.5F ? EXPALLIDUS$SOIL[player.getRandom().nextInt(EXPALLIDUS$SOIL.length)] : EXPALLIDUS$MUD[player.getRandom().nextInt(EXPALLIDUS$MUD.length)];
             Block.popResource(level, pos, new ItemStack(item));
         }
         level.playSound(null, pos, SoundEvents.SCULK_CATALYST_BREAK, SoundSource.BLOCKS, 0.5F, 1.0F);
@@ -72,6 +80,7 @@ public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
+    @Unique
     private static InteractionResult expallidus$transmuteEndStone(Level level, BlockPos pos, Player player, ItemStack tool) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
@@ -95,6 +104,7 @@ public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
+    @Unique
     private static InteractionResult expallidus$transmuteEchoShard(Level level, BlockPos pos, Player player, ItemStack tool) {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
@@ -114,6 +124,7 @@ public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
+    @Unique
     private static int expallidus$countEchoShards(Player player) {
         Inventory inventory = player.getInventory();
         int total = 0;
@@ -126,6 +137,7 @@ public abstract class MixinSculkCatalystBlock extends BaseEntityBlock {
         return total;
     }
 
+    @Unique
     private static void expallidus$removeEchoShards(Player player, int amount) {
         Inventory inventory = player.getInventory();
         for (int i = 0; i < inventory.getContainerSize() && amount > 0; i++) {

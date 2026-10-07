@@ -1,4 +1,4 @@
-package org.icarus.expallidus.mixins;
+package org.icarus.expallidus.utils;
 
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -7,23 +7,18 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BoneMealItem;
-import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(BoneMealItem.class)
-public abstract class MixinBoneMealItem {
-    private static final Map<Block, Block> EXPALLIDUS$CORAL_REVIVAL = Map.ofEntries(
+public final class CoralUtils {
+
+    private static final Map<Block, Block> REVIVAL = Map.ofEntries(
         Map.entry(Blocks.DEAD_HORN_CORAL_BLOCK, Blocks.HORN_CORAL_BLOCK),
         Map.entry(Blocks.DEAD_BRAIN_CORAL_BLOCK, Blocks.BRAIN_CORAL_BLOCK),
         Map.entry(Blocks.DEAD_BUBBLE_CORAL_BLOCK, Blocks.BUBBLE_CORAL_BLOCK),
@@ -41,18 +36,15 @@ public abstract class MixinBoneMealItem {
         Map.entry(Blocks.DEAD_TUBE_CORAL, Blocks.TUBE_CORAL)
     );
 
-    @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
-    private void expallidus$useOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        Block target = EXPALLIDUS$CORAL_REVIVAL.get(level.getBlockState(pos).getBlock());
+    private CoralUtils() {
+    }
+
+    public static boolean tryRevive(Level level, BlockPos pos, BlockState state, Player player, InteractionHand hand, ItemStack stack) {
+        Block target = REVIVAL.get(state.getBlock());
         if (target == null) {
-            return;
+            return false;
         }
-        Player player = context.getPlayer();
-        if (player == null) {
-            return;
-        }
+
         BlockState newState = target.defaultBlockState();
         if (newState.hasProperty(BlockStateProperties.WATERLOGGED)) {
             newState = newState.setValue(BlockStateProperties.WATERLOGGED, false);
@@ -60,7 +52,7 @@ public abstract class MixinBoneMealItem {
         level.setBlockAndUpdate(pos, newState);
         level.playSound(null, pos, SoundEvents.CORAL_BLOCK_PLACE, SoundSource.BLOCKS, 0.5F, 1.0F);
         level.playSound(null, pos, SoundEvents.BONE_MEAL_USE, SoundSource.BLOCKS, 0.5F, 1.0F);
-        player.swing(context.getHand());
+        player.swing(hand);
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(
                 new BlockParticleOption(ParticleTypes.BLOCK, newState),
@@ -75,9 +67,8 @@ public abstract class MixinBoneMealItem {
             );
         }
         if (!player.getAbilities().instabuild) {
-            context.getItemInHand().shrink(1);
+            stack.shrink(1);
         }
-        cir.setReturnValue(InteractionResult.SUCCESS);
-        cir.cancel();
+        return true;
     }
 }

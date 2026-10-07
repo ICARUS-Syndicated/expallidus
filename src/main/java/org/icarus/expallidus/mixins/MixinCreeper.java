@@ -10,12 +10,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Creeper.class)
 public abstract class MixinCreeper {
+
+    @Shadow
+    public abstract boolean isPowered();
 
     @Inject(method = "killedEntity", at = @At("HEAD"))
     private void expallidus$playerHead(
@@ -24,7 +28,7 @@ public abstract class MixinCreeper {
         DamageSource damageSource,
         CallbackInfoReturnable<Boolean> cir
     ) {
-        if (!(entity instanceof ServerPlayer player) || !((Creeper) (Object) this).isPowered()) {
+        if (!(entity instanceof ServerPlayer player) || !this.isPowered()) {
             return;
         }
         ItemStack skull = new ItemStack(Items.PLAYER_HEAD);
